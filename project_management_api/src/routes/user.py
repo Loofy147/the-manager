@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from src.models.user import User, db
 from datetime import datetime
 import json
+from flask_jwt_extended import create_access_token
 
 user_bp = Blueprint('user', __name__)
 
@@ -211,8 +212,10 @@ def login():
     if user and user.check_password(password) and user.is_active:
         user.last_login = datetime.utcnow()
         db.session.commit()
+        access_token = create_access_token(identity=user.id)
         return jsonify({
             'message': 'Login successful',
+            'token': access_token,
             'user': user.to_dict()
         })
     else:
