@@ -3,3 +3,6 @@ Flask-Cors
 Flask-SQLAlchemy
 Werkzeug
 Flask-JWT-Extended
+python-dotenv
+structlog
+pytest
