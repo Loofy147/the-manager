@@ -190,46 +190,116 @@ const mockTasks = [
     ]
   }
 ]
+function TasksList({ project }) {
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`/api/projects/${project.id}/tasks`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setTasks(response.data.tasks);
+      } catch (error) {
+        console.error('Error fetching tasks:', error);
+      }
+    };
+    fetchTasks();
+  }, [project.id]);
+
+  return (
+    <div className="space-y-4">
+      {tasks.map(task => (
+        <TaskItem key={task.id} task={task} />
+      ))}
+    </div>
+  );
+}
+
 function TaskItem({ task }) {
-  const [showComments, setShowComments] = useState(false)
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+
+  const fetchComments = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`/api/tasks/${task.id}/comments`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setComments(response.data);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const handleToggleComments = () => {
+    setShowComments(!showComments);
+    if (!showComments) {
+      fetchComments();
+    }
+  };
+
+  const handlePostComment = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `/api/tasks/${task.id}/comments`,
+        { content: newComment },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setComments([...comments, response.data]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  };
 
   return (
     <Card>
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
-            <h4 className="font-medium">{task.title}</h4>
-            <div className="flex items-center gap-2">
-                <Badge>{task.status}</Badge>
-                <Button variant="ghost" size="sm" onClick={() => setShowComments(!showComments)}>
-                    <MessageSquare className="h-4 w-4" />
-                </Button>
-            </div>
+          <h4 className="font-medium">{task.title}</h4>
+          <div className="flex items-center gap-2">
+            <Badge>{task.status}</Badge>
+            <Button variant="ghost" size="sm" onClick={handleToggleComments}>
+              <MessageSquare className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
         <p className="text-sm text-muted-foreground mt-2">{task.description}</p>
         {showComments && (
-            <div className="mt-4 space-y-4">
-                <h5 className="font-medium">Comments</h5>
-                {task.comments.map(comment => (
-                    <div key={comment.id} className="flex items-start gap-3">
-                        <img src={comment.avatar} alt={comment.user} className="w-8 h-8 rounded-full" />
-                        <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                                <span className="font-medium text-sm">{comment.user}</span>
-                                <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
-                            </div>
-                            <p className="text-sm">{comment.content}</p>
-                        </div>
-                    </div>
-                ))}
-                <div className="flex gap-2">
-                    <Input placeholder="Add a comment..." />
-                    <Button>Send</Button>
+          <div className="mt-4 space-y-4">
+            <h5 className="font-medium">Comments</h5>
+            {comments.map(comment => (
+              <div key={comment.id} className="flex items-start gap-3">
+                <div className="flex-1">
+                  <p className="text-sm">{comment.content}</p>
                 </div>
+              </div>
+            ))}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={e => setNewComment(e.target.value)}
+              />
+              <Button onClick={handlePostComment}>Send</Button>
             </div>
+          </div>
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 const aiCategories = [
   { id: 'computer_vision', name: 'رؤية الحاسوب', icon: Eye },
@@ -644,9 +714,7 @@ function ProjectDetailsDialog({ open, onOpenChange, project }) {
           </TabsContent>
 
           <TabsContent value="tasks" className="space-y-4">
-            {mockTasks.filter(task => task.project_id === project.id).map(task => (
-              <TaskItem key={task.id} task={task} />
-            ))}
+            <TasksList project={project} />
                   <CardTitle className="text-lg">التقدم العام</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -847,15 +915,34 @@ function ProjectDetailsDialog({ open, onOpenChange, project }) {
   )
 }
 
+import axios from 'axios';
+
 export default function ProjectManagement() {
-  const [projects, setProjects] = useState(mockProjects)
-  const [filteredProjects, setFilteredProjects] = useState(mockProjects)
+  const [projects, setProjects] = useState([])
+  const [filteredProjects, setFilteredProjects] = useState([])
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [selectedProject, setSelectedProject] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [typeFilter, setTypeFilter] = useState('all')
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/projects', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        setProjects(response.data.projects);
+      } catch (error) {
+        console.error('Error fetching projects:', error);
+      }
+    };
+    fetchProjects();
+  }, []);
 
   useEffect(() => {
     let filtered = projects
