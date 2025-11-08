@@ -41,7 +41,8 @@ import {
   TrendingUp,
   FileText,
   Link,
-  Globe
+  Globe,
+  MessageSquare
 } from 'lucide-react'
 
 // Enhanced mock data for AI projects
@@ -177,10 +178,59 @@ const mockTasks = [
     progress: 0,
     estimated_hours: 60,
     actual_hours: 0,
-    tags: ['frontend', 'ui_design', 'react']
+    tags: ['frontend', 'ui_design', 'react'],
+    comments: [
+        {
+            id: '1',
+            user: 'Ahmed',
+            avatar: 'https://i.pravatar.cc/40',
+            timestamp: '2 hours ago',
+            content: 'I think we should use a different approach here.'
+        }
+    ]
   }
 ]
+function TaskItem({ task }) {
+  const [showComments, setShowComments] = useState(false)
 
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between">
+            <h4 className="font-medium">{task.title}</h4>
+            <div className="flex items-center gap-2">
+                <Badge>{task.status}</Badge>
+                <Button variant="ghost" size="sm" onClick={() => setShowComments(!showComments)}>
+                    <MessageSquare className="h-4 w-4" />
+                </Button>
+            </div>
+        </div>
+        <p className="text-sm text-muted-foreground mt-2">{task.description}</p>
+        {showComments && (
+            <div className="mt-4 space-y-4">
+                <h5 className="font-medium">Comments</h5>
+                {task.comments.map(comment => (
+                    <div key={comment.id} className="flex items-start gap-3">
+                        <img src={comment.avatar} alt={comment.user} className="w-8 h-8 rounded-full" />
+                        <div className="flex-1">
+                            <div className="flex items-center justify-between">
+                                <span className="font-medium text-sm">{comment.user}</span>
+                                <span className="text-xs text-muted-foreground">{comment.timestamp}</span>
+                            </div>
+                            <p className="text-sm">{comment.content}</p>
+                        </div>
+                    </div>
+                ))}
+                <div className="flex gap-2">
+                    <Input placeholder="Add a comment..." />
+                    <Button>Send</Button>
+                </div>
+            </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 const aiCategories = [
   { id: 'computer_vision', name: 'رؤية الحاسوب', icon: Eye },
   { id: 'nlp', name: 'معالجة اللغة الطبيعية', icon: FileText },
@@ -591,6 +641,12 @@ function ProjectDetailsDialog({ open, onOpenChange, project }) {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <Card>
                 <CardHeader>
+          </TabsContent>
+
+          <TabsContent value="tasks" className="space-y-4">
+            {mockTasks.filter(task => task.project_id === project.id).map(task => (
+              <TaskItem key={task.id} task={task} />
+            ))}
                   <CardTitle className="text-lg">التقدم العام</CardTitle>
                 </CardHeader>
                 <CardContent>

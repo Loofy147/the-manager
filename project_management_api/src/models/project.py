@@ -1,4 +1,5 @@
 from src.models.user import db
+from src.models.comment import Comment
 from datetime import datetime
 import uuid
 
@@ -104,7 +105,6 @@ class Task(db.Model):
     tags = db.Column(db.Text)  # JSON string
     dependencies = db.Column(db.Text)  # JSON string of task IDs
     attachments = db.Column(db.Text)  # JSON string
-    comments = db.Column(db.Text)  # JSON string
     progress_percentage = db.Column(db.Integer, default=0)
     quality_score = db.Column(db.Integer)  # 1-10
     code_review_status = db.Column(db.String(20))  # pending, approved, needs_changes
@@ -120,6 +120,7 @@ class Task(db.Model):
     assignee = db.relationship('User', foreign_keys=[assigned_to])
     assigner = db.relationship('User', foreign_keys=[assigned_by])
     creator = db.relationship('User', foreign_keys=[created_by])
+    comments = db.relationship('Comment', back_populates='task', cascade='all, delete-orphan')
 
     def __repr__(self):
         return f'<Task {self.title}>'
@@ -144,7 +145,6 @@ class Task(db.Model):
             'tags': self.tags,
             'dependencies': self.dependencies,
             'attachments': self.attachments,
-            'comments': self.comments,
             'progress_percentage': self.progress_percentage,
             'quality_score': self.quality_score,
             'code_review_status': self.code_review_status,
@@ -152,7 +152,8 @@ class Task(db.Model):
             'ai_model_metrics': self.ai_model_metrics,
             'created_by': self.created_by,
             'created_at': self.created_at.isoformat() if self.created_at else None,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'comments': [comment.to_dict() for comment in self.comments]
         }
 
 class ProjectTeam(db.Model):
