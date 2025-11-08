@@ -7,6 +7,7 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from src.models.user import db
 from src.routes.user import user_bp
+from flask_jwt_extended import JWTManager
 from src.routes.role import role_bp
 from src.routes.project import project_bp
 from src.routes.contract import contract_bp
@@ -26,6 +27,8 @@ def create_app(config_object=Config):
 
     # Enable CORS for all routes
     CORS(app, origins="*")
+
+    JWTManager(app)
 
     register_error_handlers(app)
 
@@ -58,6 +61,10 @@ def create_app(config_object=Config):
         )
 
     @app.route('/', defaults={'path': ''})
+    @app.route('/healthz')
+    def healthz():
+        return "OK"
+
     @app.route('/<path:path>')
     def serve(path):
         static_folder_path = app.static_folder
