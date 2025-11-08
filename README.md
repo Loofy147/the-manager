@@ -2,6 +2,13 @@
 
 This is a full-stack project management application with a Flask backend and a React frontend.
 
+## Features
+
+*   **User Authentication:** Users can register and log in to the application.
+*   **Project Management:** Users can view a list of projects.
+*   **Task Management:** Users can view a list of tasks for each project.
+*   **Comments:** Users can add comments to tasks.
+
 ## Production Architecture
 
 The production architecture consists of three services:

@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from flask import Flask, send_from_directory
 from flask_cors import CORS
 from src.models.user import db
+from prometheus_flask_exporter import PrometheusMetrics
 from src.routes.user import user_bp
 from flask_jwt_extended import JWTManager
 from src.routes.role import role_bp
@@ -27,6 +28,8 @@ def create_app(config_object=Config):
 
     # Enable CORS for all routes
     CORS(app, origins="*")
+
+    PrometheusMetrics(app)
 
     JWTManager(app)
 

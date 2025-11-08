@@ -34,3 +34,7 @@ docker-compose logs frontend
 ### 3.2. "index.html not found"
 
 This error indicates that the frontend container is running, but the `index.html` file is not in the correct location. To troubleshoot this issue, ensure that the `COPY --from=builder /app/dist /usr/share/nginx/html` command in the `project_management_frontend/Dockerfile` is correct.
+
+## 4. Monitoring
+
+The backend service exposes a `/metrics` endpoint that can be used to monitor the application with Prometheus.
